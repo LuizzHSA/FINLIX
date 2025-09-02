@@ -1,16 +1,3 @@
-// CÓDIGO DO SERVICE WORKER PARA OFFLINE
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('Service Worker registrado com sucesso:', registration.scope);
-            })
-            .catch(error => {
-                console.log('Falha no registro do Service Worker:', error);
-            });
-    });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     // Seleciona os elementos do HTML
     const form = document.getElementById('form-movimentacao');
@@ -28,8 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const graficoSecao = document.getElementById('grafico-secao');
     const graficoCanvas = document.getElementById('graficoDespesas');
 
-    let movimentacoes = JSON.parse(localStorage.getItem('movimentacoes')) || [];
+    let movimentacoes = [];
     let graficoInstance = null;
+
+    // Função para buscar as movimentações do Firebase
+    async function fetchMovimentacoes() {
+        try {
+            const snapshot = await db.collection('movimentacoes').orderBy('data', 'desc').get();
+            movimentacoes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderizarExtrato();
+        } catch (error) {
+            console.error('Erro ao buscar movimentações:', error);
+            extratoDiv.innerHTML = '<p class="aviso">Erro ao carregar os dados.</p>';
+        }
+    }
 
     // Função para renderizar o extrato na tela
     function renderizarExtrato() {
@@ -48,17 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ul.appendChild(li);
         });
         extratoDiv.appendChild(ul);
-    }
-
-    // Função para abrir o WhatsApp
-    function abrirWhatsApp(numero, mensagem) {
-        let linkWhatsApp;
-        if (mensagem) {
-            linkWhatsApp = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
-        } else {
-            linkWhatsApp = `https://wa.me/${numero}`;
-        }
-        window.open(linkWhatsApp, '_blank');
     }
 
     // Função para gerar o gráfico
@@ -108,9 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event Listeners
-    form.addEventListener('submit', (event) => {
+    form.addEventListener('submit', async (event) => {
         event.preventDefault();
-
         const novaMovimentacao = {
             tipo: tipoSelect.value,
             descricao: descricaoInput.value,
@@ -119,15 +106,17 @@ document.addEventListener('DOMContentLoaded', () => {
             data: dataInput.value,
             quem: quemSelect.value
         };
-
-        movimentacoes.push(novaMovimentacao);
-        localStorage.setItem('movimentacoes', JSON.stringify(movimentacoes));
-
-        notificacaoDiv.textContent = 'Movimentação registrada com sucesso!';
-        notificacaoDiv.style.display = 'block';
-        setTimeout(() => { notificacaoDiv.style.display = 'none'; }, 3000);
-        form.reset();
-        renderizarExtrato();
+        try {
+            await db.collection('movimentacoes').add(novaMovimentacao);
+            notificacaoDiv.textContent = 'Movimentação registrada com sucesso!';
+            notificacaoDiv.style.display = 'block';
+            setTimeout(() => { notificacaoDiv.style.display = 'none'; }, 3000);
+            form.reset();
+            await fetchMovimentacoes();
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Não foi possível se conectar ao Firebase.');
+        }
     });
 
     whatsappBtn.addEventListener('click', () => {
@@ -179,5 +168,5 @@ ${emojiSaldo} Saldo Final: R$ ${saldo.toFixed(2)}
         gerarGrafico();
     });
 
-    renderizarExtrato();
+    fetchMovimentacoes();
 });

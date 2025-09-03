@@ -169,4 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ================== INICIALIZAÇÃO ==================
     escutarMovimentacoes();
+    
+    fetchMovimentacoes();
 });

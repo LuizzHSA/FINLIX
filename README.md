@@ -1,7 +1,8 @@
 ﻿# FINLIX
+Este é um assistente de finanças pessoal e compartilhado, desenvolvido para ajudar a gerenciar e visualizar suas movimentações financeiras de forma simples e sincronizada.
 
-Um sistema simples de **controle financeiro colaborativo**, onde dois usuários (Ex: "Eu" e "Ela") podem registrar despesas e entradas em tempo real.  
-O projeto utiliza **Supabase (PostgreSQL + Realtime)** para manter os dados sincronizados entre todos os usuários conectados.
+O projeto foi construído com foco na praticidade, permitindo o registro de gastos e entradas, visualização de extratos e gráficos.
+
 
 ✨ Funcionalidades
 Registro de Movimentações: Formulário simples para registrar despesas e entradas com detalhes como valor, data, categoria e quem realizou a transação.
@@ -12,6 +13,8 @@ Gráfico de Despesas: Gráfico de pizza que mostra a distribuição dos gastos p
 
 Sincronização com o Backend: Os dados são salvos e sincronizados em um banco de dados em nuvem, acessível de qualquer dispositivo.
 
+
+
 🛠️ Tecnologias Utilizadas
 Frontend: HTML5, CSS3 (design limpo e responsivo), JavaScript (ES6+).
 
@@ -20,6 +23,8 @@ Backend: Firebase (Cloud Firestore) para persistência de dados.
 Visualização: Chart.js para renderização dos gráficos.
 
 Hospedagem: Vercel para o deploy do frontend.
+
+
 
 🚀 Como Rodar o Projeto
 Para usar o projeto, você precisa conectá-lo a um banco de dados Firebase.
@@ -52,4 +57,5 @@ Autenticação de Usuários: Um sistema de login e registro para que cada pessoa
 Gerenciador de Cartões: Uma seção para monitorar faturas, limites e gastos de cartões de crédito.
 
 Desenvolvimento Mobile: Expansão para uma aplicação nativa ou cross-platform (via React Native).
+
 

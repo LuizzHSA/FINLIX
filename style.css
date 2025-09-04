@@ -17,7 +17,7 @@ body {
     min-height: 100vh;
 }
 
-/* Container principal - agora apenas um layout */
+/* O container principal agora é apenas um wrapper sem estilo visual */
 .container {
     max-width: 600px;
     width: 100%;
@@ -46,12 +46,12 @@ h2 {
     margin-bottom: 24px;
 }
 
-/* Estilos para Formulário */
+/* Estilos para Formulário (agora um cartão individual) */
 form {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    background-color: #ffffff; /* Adicionado fundo branco aqui */
+    background-color: #ffffff; /* Fundo branco para o cartão */
     padding: 24px;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
@@ -147,7 +147,7 @@ button[type="submit"]:hover {
     background-color: #d93025;
 }
 
-/* Notificação */
+/* Notificação (Material Design Snackbars) */
 #notificacao {
     background-color: #3c4043;
     color: #ffffff;
@@ -163,7 +163,7 @@ button[type="submit"]:hover {
     box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 }
 
-/* Estilos para Extrato e Gráfico */
+/* Estilos para Extrato e Gráfico (cartões individuais) */
 .extrato {
     background-color: #ffffff;
     padding: 24px;

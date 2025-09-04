@@ -1,5 +1,5 @@
-/* Reset Básico e Fontes */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+/* Reset Básico e Fontes (Google Fonts - Roboto) */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 * {
     margin: 0;
     padding: 0;
@@ -7,40 +7,44 @@
 }
 
 body {
-    background-color: #f1f3f4;
-    color: #3c4043;
+    background-color: #f8f9fa; /* Fundo mais claro */
+    color: #3c4043; /* Cor de texto padrão do Google */
     font-family: 'Roboto', sans-serif;
     padding: 24px;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: flex-start; /* Alinhar ao topo para telas maiores */
     min-height: 100vh;
 }
 
-/* Layout Principal em forma de Cartão */
+/* Layout Principal em forma de Cartão (Material Design Card) */
 .container {
     max-width: 600px;
     width: 100%;
     background-color: #ffffff;
     padding: 32px;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+    border-radius: 8px; /* Cantos levemente arredondados */
+    /* Sombras do Material Design (elevation 2) */
+    box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 
+                0px 4px 5px 0px rgba(0,0,0,0.14), 
+                0px 1px 10px 0px rgba(0,0,0,0.12);
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: 28px; /* Espaçamento ajustado */
 }
 
 h1 {
     font-size: 1.8rem;
-    font-weight: 500;
+    font-weight: 500; /* Peso da fonte para títulos */
     text-align: center;
-    color: #202124;
+    color: #202124; /* Tom de cinza escuro para títulos */
+    margin-bottom: 8px; /* Espaçamento menor para subtítulo */
 }
 
 h2 {
-    font-size: 1.2rem;
-    font-weight: 500;
-    color: #4b5563;
+    font-size: 1.3rem; /* Um pouco maior para subtítulos */
+    font-weight: 400; /* Peso da fonte mais leve */
+    color: #5f6368; /* Tom de cinza para subtítulos */
     text-align: center;
     margin-bottom: 24px;
 }
@@ -52,92 +56,121 @@ form {
     gap: 16px;
 }
 
+.form-group {
+    margin-bottom: 8px; /* Espaçamento entre grupos de formulário */
+}
+
 form label {
     font-weight: 500;
-    font-size: 0.9rem;
-    color: #5f6368;
+    font-size: 0.85rem; /* Um pouco menor para labels */
+    color: #5f6368; /* Cor de label do Google */
     margin-bottom: 4px;
+    display: block; /* Garante que o label ocupe sua própria linha */
 }
 
 form input,
 form select {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #dadce0;
-    border-radius: 8px;
+    padding: 12px 16px; /* Padding interno */
+    border: 1px solid #dadce0; /* Borda sutil */
+    border-radius: 4px; /* Cantos levemente arredondados */
     font-size: 1rem;
     color: #3c4043;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: #f8f9fa; /* Fundo sutilmente mais escuro que o card */
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 form input:focus,
 form select:focus {
-    border-color: #4285f4;
-    box-shadow: 0 0 0 1px #4285f4;
-    outline: none;
+    border-color: #4285f4; /* Borda azul do Google */
+    box-shadow: 0 0 0 1px #4285f4; /* Shadow no foco */
+    outline: none; /* Remove o outline padrão do navegador */
+    background-color: #ffffff; /* Fundo branco no foco */
 }
 
-/* Estilos para Botões */
+/* Estilos para Botões (Material Design Buttons) */
 .form-group-buttons {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 16px;
+    flex-wrap: wrap; /* Quebra de linha em telas pequenas */
+    gap: 10px; /* Espaçamento entre botões */
+    margin-top: 18px; /* Espaçamento acima dos botões */
 }
 
 .form-group-buttons button,
 form button {
-    padding: 12px 24px;
+    padding: 12px 20px;
     border: none;
-    border-radius: 8px;
+    border-radius: 4px; /* Cantos arredondados */
     color: white;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 500; /* Peso da fonte para botões */
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
-    flex-grow: 1;
+    text-transform: uppercase; /* Texto em maiúsculas */
+    letter-spacing: 0.5px; /* Espaçamento entre letras */
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    flex-grow: 1; /* Para botões ocuparem espaço */
+    min-width: 120px; /* Garante um tamanho mínimo */
 }
 
 .form-group-buttons button:hover,
 form button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(60, 64, 67, 0.15);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15); /* Sombra mais profunda no hover */
 }
 
+/* Cores dos Botões (Paleta Google) */
 button[type="submit"] {
-    background-color: #4285f4;
+    background-color: #4285f4; /* Google Blue */
 }
 button[type="submit"]:hover {
-    background-color: #1a73e8;
+    background-color: #3367d6; /* Azul mais escuro no hover */
 }
 
 .whatsapp-btn {
-    background-color: #34a853;
+    background-color: #34a853; /* Google Green */
 }
 .whatsapp-btn:hover {
-    background-color: #1e8e3e;
+    background-color: #2e8b4e; /* Verde mais escuro no hover */
 }
 
 .extrato-whatsapp-btn {
-    background-color: #9aa0a6;
+    background-color: #fbbc05; /* Google Yellow */
+    color: #3c4043; /* Texto escuro para contraste */
 }
 .extrato-whatsapp-btn:hover {
-    background-color: #5f6368;
+    background-color: #f7a800; /* Amarelo mais escuro no hover */
 }
 
 .mostrar-grafico-btn {
-    background-color: #ea4335;
+    background-color: #ea4335; /* Google Red */
 }
 .mostrar-grafico-btn:hover {
-    background-color: #d2382c;
+    background-color: #d93025; /* Vermelho mais escuro no hover */
 }
 
-/* Estilos para Extrato e Gráfico */
+/* Notificação (Material Design Snackbars) */
+#notificacao {
+    background-color: #3c4043; /* Fundo escuro */
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9rem;
+    position: fixed; /* Fixar na tela */
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+}
+
+/* Estilos para Extrato e Gráfico (Material Design Cards) */
 .extrato {
-    background-color: #f9fafb;
+    background-color: #ffffff; /* Fundo branco para o card */
     padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 
+                0px 4px 5px 0px rgba(0,0,0,0.14), 
+                0px 1px 10px 0px rgba(0,0,0,0.12);
 }
 
 .extrato ul {
@@ -145,26 +178,28 @@ button[type="submit"]:hover {
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px; /* Espaçamento entre itens */
 }
 
 .extrato li {
     padding: 12px 16px;
-    border-radius: 8px;
-    background-color: #ffffff;
-    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.1);
+    border-radius: 6px; /* Levemente arredondado */
+    background-color: #f8f9fa; /* Fundo levemente cinza para itens */
+    border: 1px solid #e8eaed; /* Borda sutil */
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 0.9rem;
     font-weight: 400;
+    color: #3c4043;
 }
 
+/* Cores de borda para itens de extrato */
 .extrato li.despesa {
-    border-left: 4px solid #ea4335;
+    border-left: 4px solid #ea4335; /* Google Red */
 }
 .extrato li.entrada {
-    border-left: 4px solid #34a853;
+    border-left: 4px solid #34a853; /* Google Green */
 }
 
 .aviso {
@@ -172,22 +207,41 @@ button[type="submit"]:hover {
     color: #5f6368;
     font-style: italic;
     margin-top: 16px;
+    font-size: 0.9rem;
 }
 
 #grafico-secao {
+    background-color: #ffffff; /* Fundo branco para o card */
     padding: 24px;
-    border-radius: 12px;
-    background-color: #f9fafb;
-    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.1);
-    margin-top: 32px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 
+                0px 4px 5px 0px rgba(0,0,0,0.14), 
+                0px 1px 10px 0px rgba(0,0,0,0.12);
+    margin-top: 28px;
 }
 
 /* Responsividade */
 @media (max-width: 640px) {
+    body {
+        padding: 16px; /* Padding menor em telas pequenas */
+    }
     .container {
-        padding: 20px;
+        padding: 24px;
+        gap: 24px;
     }
     .form-group-buttons {
-        flex-direction: column;
+        flex-direction: column; /* Botões empilhados */
+        gap: 8px;
+    }
+    .form-group-buttons button,
+    form button {
+        width: 100%;
+        min-width: unset; /* Remove min-width em telas pequenas */
+    }
+    h1 {
+        font-size: 1.5rem;
+    }
+    h2 {
+        font-size: 1.1rem;
     }
 }

@@ -1,146 +1,89 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Firebase Hosting</title>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="ico.png" type="image/png">
-    <link rel="apple-touch-icon" href="ico.png">
-    <title>Assistente de Finanças</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBUPFalpHQhKdQ2iBvmCXULrvc67qrQg3I",
-            authDomain: "finlix-96afb.firebaseapp.com",
-            projectId: "finlix-96afb",
-            storageBucket: "finlix-96afb.firebasestorage.app",
-            messagingSenderId: "14388025527",
-            appId: "1:14388025527:web:38a0f4946c88dbb64a9532",
-            measurementId: "G-WCNEJGHTXE"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-    </script>
-</head>
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/12.2.1/firebase-app-compat.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/12.2.1/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/12.2.1/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/12.2.1/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/12.2.1/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/12.2.1/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/12.2.1/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/12.2.1/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/12.2.1/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/12.2.1/firebase-performance-compat.js"></script>
+    <!-- 
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
 
-<body>
-        <div class="card p-4 shadow-sm mb-4">
-            <h2 class="card-title text-center">Salários e Saldo</h2>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="salario-luiz" class="form-label">Salário Luiz</label>
-                    <input type="number" id="salario-luiz" class="form-control" step="0.01" placeholder="R$ 0,00">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="salario-kety" class="form-label">Salário Kety</label>
-                    <input type="number" id="salario-kety" class="form-control" step="0.01" placeholder="R$ 0,00">
-                </div>
-            </div>
-            <div class="d-grid gap-2 mb-3">
-                <button id="salvar-salarios-btn" class="btn btn-primary">Salvar Salários Fixos</button>
-            </div>
-            <h4 class="text-center mt-3">Saldo Disponível: <span id="saldo-disponivel" class="text-success fw-bold">R$
-                    0,00</span></h4>
-        </div>
-
-        <div class="container my-5">
-            <header class="text-center mb-4">
-                <h1>Registrar Movimentação</h1>
-            </header>
-
-        <form id="form-movimentacao" class="card p-4 shadow-sm mb-4">
-            <div class="mb-3">
-                <label for="tipo" class="form-label">Tipo</label>
-                <select id="tipo" name="tipo" class="form-select" required>
-                    <option value="despesa">Despesa</option>
-                    <option value="entrada">Entrada</option>
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label for="descricao" class="form-label">Descrição</label>
-                <input type="text" id="descricao" name="descricao" class="form-control" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="categoria" class="form-label">Categoria</label>
-                <select id="categoria" name="categoria" class="form-select">
-                    <option value="Mercado">Mercado</option>
-                    <option value="Necessidades">Necessidades</option>
-                    <option value="Eletronicos">Eletrônicos</option>
-                    <option value="Assinaturas">Assinaturas</option>
-                    <option value="Roupa">Roupa</option>
-                    <option value="Beleza">Beleza</option>
-                    <option value="Presentes">Presentes</option>
-                    <option value="Saude">Saúde</option>
-                    <option value="Despesas">Despesas</option>
-                    <option value="Eventuais">Eventuais</option>
-                    <option value="Desenvolvimento">Desenvolvimento</option>
-                    <option value="Uber/Transporte">Uber/Transporte</option>
-                    <option value="Fast-food">Fast-food</option>
-                    <option value="Restaurante">Restaurante</option>
-                    <option value="Lazer">Lazer</option>
-                    <option value="Aluguel">Aluguel</option>
-                    <option value="Contas">Contas</option>
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label for="valor" class="form-label">Valor</label>
-                <input type="number" id="valor" name="valor" step="0.01" class="form-control" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="data" class="form-label">Data</label>
-                <input type="date" id="data" name="data" class="form-control" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="quem" class="form-label">Quem</label>
-                <select id="quem" name="quem" class="form-select" required>
-                    <option value="Luiz">Luiz</option>
-                    <option value="Kety">Kety</option>
-                </select>
-            </div>
-
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Registrar</button>
-                <button type="button" id="whatsapp-btn" class="btn btn-success">Enviar para WhatsApp</button>
-                <button type="button" id="extrato-whatsapp-btn" class="btn btn-secondary">Solicitar Extrato via
-                    WhatsApp</button>
-                <button type="button" id="mostrar-grafico-btn" class="btn btn-danger">Mostrar Gráfico</button>
-            </div>
-        </form>
-
-        <div id="notificacao" class="alert alert-success mt-4 d-none">
-            Movimentação registrada com sucesso!
-        </div>
-
-        <div class="mb-3">
-            <label for="filtro" class="form-label">Filtrar por pessoa:</label>
-            <select id="filtro" class="form-select">
-                <option value="todos">Todos</option>
-                <option value="Luiz">Luiz</option>
-                <option value="Kety">Kety</option>
-            </select>
-        </div>
-
-
-        <div class="extrato card p-4 shadow-sm mt-4">
-            <h2>Extrato de Movimentações</h2>
-            <div id="extrato" class="list-group"></div>
-            <div id="grafico-secao" class="mt-4" style="display: none;">
-                <h2>Gráfico de Despesas por Categoria</h2>
-                <canvas id="graficoDespesas"></canvas>
-            </div>
-        </div>
+    <style media="screen">
+      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
+      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
+      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
+      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
+      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
+      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
+      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
+      @media (max-width: 600px) {
+        body, #message { margin-top: 0; background: white; box-shadow: none; }
+        body { border-top: 16px solid #ffa100; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="message">
+      <h2>Welcome</h2>
+      <h1>Firebase Hosting Setup Complete</h1>
+      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
+      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
     </div>
+    <p id="load">Firebase SDK Loading&hellip;</p>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="script.js"></script>
-</body>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const loadEl = document.querySelector('#load');
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        // // The Firebase SDK is initialized and available here!
+        //
+        // firebase.auth().onAuthStateChanged(user => { });
+        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+        // firebase.firestore().doc('/foo/bar').get().then(() => { });
+        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
+        // firebase.messaging().requestPermission().then(() => { });
+        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+        // firebase.analytics(); // call to activate
+        // firebase.analytics().logEvent('tutorial_completed');
+        // firebase.performance(); // call to activate
+        //
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
+        try {
+          let app = firebase.app();
+          let features = [
+            'auth', 
+            'database', 
+            'firestore',
+            'functions',
+            'messaging', 
+            'storage', 
+            'analytics', 
+            'remoteConfig',
+            'performance',
+          ].filter(feature => typeof app[feature] === 'function');
+          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
+        } catch (e) {
+          console.error(e);
+          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+        }
+      });
+    </script>
+  </body>
 </html>

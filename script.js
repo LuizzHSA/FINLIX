@@ -1,273 +1,256 @@
-const form = document.getElementById("form-movimentacao");
-const extrato = document.getElementById("extrato");
-const notificacao = document.getElementById("notificacao");
-const saldoDisponivel = document.getElementById("saldo-disponivel");
-const graficoCanvas = document.getElementById("graficoDespesas");
-const graficoSecao = document.getElementById("grafico-secao");
+document.addEventListener('DOMContentLoaded', () => {
+    // ----- SELETORES -----
+    const formMovimentacao = document.getElementById('form-movimentacao');
+    const notificacaoDiv = document.getElementById('notificacao');
+    const whatsappBtn = document.getElementById('whatsapp-btn');
+    const extratoWhatsappBtn = document.getElementById('extrato-whatsapp-btn');
+    const extratoDiv = document.getElementById('extrato');
+    const mostrarGraficoBtn = document.getElementById('mostrar-grafico-btn');
+    const graficoSecao = document.getElementById('grafico-secao');
+    const graficoCanvas = document.getElementById('graficoDespesas');
 
-const salarioLuizInput = document.getElementById("salario-luiz");
-const salarioKetyInput = document.getElementById("salario-kety");
-const salvarSalariosBtn = document.getElementById("salvar-salarios-btn");
+    const filtroPessoaSelect = document.getElementById('filtro-pessoa');
+    const filtroCategoriaSelect = document.getElementById('filtro-categoria');
+    const filtroDataInicioInput = document.getElementById('filtro-data-inicio');
+    const filtroDataFimInput = document.getElementById('filtro-data-fim');
+    const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
 
-const whatsappBtn = document.getElementById("whatsapp-btn");
-const extratoWhatsappBtn = document.getElementById("extrato-whatsapp-btn");
+    const formSalarios = document.getElementById('form-salarios');
+    const salarioLuizInput = document.getElementById('salario-luiz');
+    const salarioKetyInput = document.getElementById('salario-kety');
+    const saldoDisponivelSpan = document.getElementById('saldo-disponivel');
+    const despesasLuizSpan = document.getElementById('despesas-luiz');
+    const despesasKetySpan = document.getElementById('despesas-kety');
 
-let graficoInstance = null;
-let salarios = { luiz: 0, kety: 0 };
+    const formInvestimento = document.getElementById('form-investimento');
+    const listaInvestimentosDiv = document.getElementById('lista-investimentos');
 
-// cria o filtro dinâmico
-const filtro = document.createElement("select");
-filtro.id = "filtro";
-filtro.className = "form-select mb-3";
-extrato.parentNode.insertBefore(filtro, extrato);
+    const formCartao = document.getElementById('form-cartao');
+    const listaCartoesDiv = document.getElementById('lista-cartoes');
 
-// atualizar opções do filtro
-function atualizarFiltro() {
-    db.collection("movimentacoes").get().then(snapshot => {
-        const pessoas = new Set(["todos"]);
-        snapshot.forEach(doc => pessoas.add(doc.data().quem));
+    let movimentacoes = [];
+    let graficoInstance = null;
+    let salarios = { luiz: 0, kety: 0 };
 
-        filtro.innerHTML = "";
-        pessoas.forEach(pessoa => {
-            const option = document.createElement("option");
-            option.value = pessoa;
-            option.textContent = pessoa.charAt(0).toUpperCase() + pessoa.slice(1);
-            filtro.appendChild(option);
-        });
-    });
-}
+    // ----- FUNÇÕES -----
+    async function fetchMovimentacoes(filtros = {}) {
+        try {
+            let query = db.collection('movimentacoes').orderBy('data','desc');
+            if(filtros.pessoa && filtros.pessoa!=='todos') query=query.where('quem','==',filtros.pessoa);
+            if(filtros.categoria && filtros.categoria!=='todos') query=query.where('categoria','==',filtros.categoria);
+            if(filtros.dataInicio) query=query.where('data','>=',filtros.dataInicio);
+            if(filtros.dataFim) query=query.where('data','<=',filtros.dataFim);
 
-// renderizar item do extrato
-function renderMovimentacao(doc) {
-    const data = doc.data();
-    const item = document.createElement("div");
-    item.className = "list-group-item d-flex justify-content-between align-items-center";
-
-    const info = document.createElement("div");
-    info.innerHTML = `
-        <strong>${data.tipo.toUpperCase()}</strong> - 
-        ${data.descricao} | ${data.categoria} | 
-        R$ ${parseFloat(data.valor).toFixed(2)} | 
-        ${data.quem} | ${data.data}
-    `;
-
-    const btnExcluir = document.createElement("button");
-    btnExcluir.className = "btn btn-sm btn-danger";
-    btnExcluir.textContent = "Excluir";
-    btnExcluir.onclick = async () => {
-        if (confirm("Deseja realmente excluir essa movimentação?")) {
-            await db.collection("movimentacoes").doc(doc.id).delete();
+            const snapshot = await query.get();
+            movimentacoes = snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+            renderizarExtrato();
+            atualizarSaldos();
+        } catch(e){
+            console.error(e);
+            extratoDiv.innerHTML='<p class="text-red-500">Erro ao carregar movimentações.</p>';
         }
-    };
-
-    item.appendChild(info);
-    item.appendChild(btnExcluir);
-    extrato.appendChild(item);
-}
-
-// carregar movimentações (com filtro)
-function carregarMovimentacoes(filtroPessoa) {
-    let query = db.collection("movimentacoes").orderBy("data", "desc");
-
-    if (filtroPessoa && filtroPessoa !== "todos") {
-        query = db.collection("movimentacoes")
-            .where("quem", "==", filtroPessoa)
-            .orderBy("data", "desc");
     }
 
-    query.onSnapshot(snapshot => {
-        extrato.innerHTML = "";
-        const movimentacoes = [];
-        snapshot.forEach(doc => {
-            movimentacoes.push(doc.data());
-            renderMovimentacao(doc);
-        });
-        atualizarSaldo(movimentacoes);
-        gerarGrafico(movimentacoes);
-    });
-}
-
-// atualizar saldo com salários individuais
-function atualizarSaldo(movimentacoes) {
-    const despesasLuiz = movimentacoes
-        .filter(mov => mov.tipo === "despesa" && mov.quem === "Luiz")
-        .reduce((acc, mov) => acc + mov.valor, 0);
-
-    const despesasKety = movimentacoes
-        .filter(mov => mov.tipo === "despesa" && mov.quem === "Kety")
-        .reduce((acc, mov) => acc + mov.valor, 0);
-
-    const saldoLuiz = (salarios.luiz || 0) - despesasLuiz;
-    const saldoKety = (salarios.kety || 0) - despesasKety;
-
-    const totalDespesas = despesasLuiz + despesasKety;
-    const saldoGeral = (salarios.luiz || 0) + (salarios.kety || 0) - totalDespesas;
-
-    saldoDisponivel.innerHTML = `
-         <br> R$ ${saldoGeral.toFixed(2)}<br>
-          `;
-
-    salarioLuizInput.value = salarios.luiz || 0;
-    salarioKetyInput.value = salarios.kety || 0;
-}
-
-// gerar gráfico de despesas por categoria
-function gerarGrafico(movimentacoes) {
-    const despesas = movimentacoes.filter(mov => mov.tipo === "despesa");
-    if (despesas.length === 0) {
-        graficoSecao.innerHTML = '<h2>Gráfico de Despesas</h2><p class="aviso">Sem despesas para exibir.</p>';
-        return;
-    }
-
-    const gastosPorCategoria = {};
-    despesas.forEach(mov => {
-        gastosPorCategoria[mov.categoria] = (gastosPorCategoria[mov.categoria] || 0) + mov.valor;
-    });
-
-    const labels = Object.keys(gastosPorCategoria);
-    const dataChart = Object.values(gastosPorCategoria);
-
-    if (graficoInstance) graficoInstance.destroy();
-
-    graficoInstance = new Chart(graficoCanvas, {
-        type: "pie",
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Gastos por Categoria",
-                data: dataChart,
-                backgroundColor: labels.map(() => {
-                    const r = Math.floor(Math.random() * 255);
-                    const g = Math.floor(Math.random() * 255);
-                    const b = Math.floor(Math.random() * 255);
-                    return `rgba(${r}, ${g}, ${b}, 0.6)`;
-                })
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: "top" },
-                title: { display: true, text: "Distribuição de Despesas" }
-            }
+    function renderizarExtrato(){
+        extratoDiv.innerHTML='';
+        if(movimentacoes.length===0){
+            extratoDiv.innerHTML='<p class="text-gray-500">Nenhuma movimentação encontrada.</p>';
+            return;
         }
-    });
-
-    graficoSecao.style.display = "block";
-}
-
-// ================= SALÁRIOS =================
-async function fetchSalarios() {
-    try {
-        const doc = await db.collection("salarios").doc("fixos").get();
-        if (doc.exists) {
-            salarios = doc.data();
-        }
-        salarioLuizInput.value = salarios.luiz || 0;
-        salarioKetyInput.value = salarios.kety || 0;
-        atualizarSaldo([]);
-    } catch (error) {
-        console.error("Erro ao buscar salários:", error);
-    }
-}
-
-async function salvarSalarios() {
-    const salarioLuiz = parseFloat(salarioLuizInput.value) || 0;
-    const salarioKety = parseFloat(salarioKetyInput.value) || 0;
-
-    salarios = { luiz: salarioLuiz, kety: salarioKety };
-    try {
-        await db.collection("salarios").doc("fixos").set(salarios);
-        alert("Salários salvos com sucesso!");
-        atualizarSaldo([]);
-    } catch (error) {
-        console.error("Erro ao salvar salários:", error);
-        alert("Erro ao salvar salários.");
-    }
-}
-
-// ================= WHATSAPP =================
-function abrirWhatsApp(numero, mensagem) {
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, "_blank");
-}
-
-function montarMensagemExtrato(movimentacoes, filtroPessoa) {
-    let totalEntradas = 0;
-    let totalDespesas = 0;
-    let despesasLuiz = 0;
-    let despesasKety = 0;
-
-    let mensagem = `Extrato de Movimentações (${filtroPessoa})\n\n`;
-
-    if (movimentacoes.length === 0) {
-        mensagem += "Nenhuma movimentação registrada.";
-    } else {
-        movimentacoes.forEach(mov => {
-            const valorMov = parseFloat(mov.valor);
-            if (mov.tipo === "entrada") totalEntradas += valorMov;
-            else totalDespesas += valorMov;
-
-            if (mov.tipo === "despesa" && mov.quem === "Luiz") despesasLuiz += valorMov;
-            if (mov.tipo === "despesa" && mov.quem === "Kety") despesasKety += valorMov;
-
-            const emoji = mov.tipo === "despesa" ? "🔴" : "🟢";
-            mensagem += `${emoji} ${mov.descricao}: R$ ${valorMov.toFixed(2)} (${mov.data}) por ${mov.quem} - Categoria: ${mov.categoria}\n`;
+        movimentacoes.forEach(mov=>{
+            const card = document.createElement('div');
+            card.className='bg-white shadow-md rounded p-3 flex justify-between items-center animate-fadeIn';
+            const emoji = mov.tipo==='despesa'?'🔴':'🟢';
+            card.innerHTML=`
+                <div>
+                    ${emoji} <strong>${mov.descricao}</strong><br>
+                    <small>R$ ${parseFloat(mov.valor).toFixed(2)} | ${mov.quem} | ${mov.data} | ${mov.categoria}</small>
+                </div>
+                <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition excluir-btn" data-id="${mov.id}">Excluir</button>
+            `;
+            extratoDiv.appendChild(card);
         });
-        const saldo = totalEntradas - totalDespesas;
-        const saldoLuiz = (salarios.luiz || 0) - despesasLuiz;
-        const saldoKety = (salarios.kety || 0) - despesasKety;
 
-        mensagem += `\n---\n🟢 Entradas: R$ ${totalEntradas.toFixed(2)}\n🔴 Despesas: R$ ${totalDespesas.toFixed(2)}\n✅ Saldo Final: R$ ${saldo.toFixed(2)}\n\n Luiz: R$ ${saldoLuiz.toFixed(2)} | Kety: R$ ${saldoKety.toFixed(2)}\n---`;
+        document.querySelectorAll('.excluir-btn').forEach(btn=>{
+            btn.addEventListener('click',async e=>{
+                const id = e.target.dataset.id;
+                if(confirm('Deseja excluir esta movimentação?')){
+                    await db.collection('movimentacoes').doc(id).delete();
+                    fetchMovimentacoes();
+                }
+            });
+        });
     }
-    return mensagem;
-}
 
-// registrar movimentação
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    function gerarGrafico(){
+        const despesas = movimentacoes.filter(m=>m.tipo==='despesa');
+        if(despesas.length===0){
+            graficoSecao.classList.add('hidden');
+            return;
+        }
+        const dados={};
+        despesas.forEach(m=>dados[m.categoria]=(dados[m.categoria]||0)+parseFloat(m.valor));
+        const labels = Object.keys(dados);
+        const data = Object.values(dados);
+        if(graficoInstance) graficoInstance.destroy();
+        const cores = labels.map(()=>`rgba(${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)},0.6)`);
+        graficoInstance = new Chart(graficoCanvas,{
+            type:'pie',
+            data:{labels,datasets:[{label:'Gastos',data,backgroundColor:cores,hoverOffset:4}]},
+            options:{responsive:true,plugins:{legend:{position:'top'},title:{display:true,text:'Despesas por Categoria'}},animation:{duration:1000,easing:'easeOutQuart'}}
+        });
+        graficoSecao.classList.remove('hidden');
+    }
 
-    const tipo = form.tipo.value;
-    const descricao = form.descricao.value;
-    const categoria = form.categoria.value;
-    const valor = parseFloat(form.valor.value);
-    const data = form.data.value;
-    const quem = form.quem.value;
+    async function fetchSalarios(){
+        const doc = await db.collection('salarios').doc('fixos').get();
+        if(doc.exists) salarios=doc.data();
+        salarioLuizInput.value=salarios.luiz||0;
+        salarioKetyInput.value=salarios.kety||0;
+        atualizarSaldos();
+    }
 
-    await db.collection("movimentacoes").add({
-        tipo, descricao, categoria, valor, data, quem
+    function atualizarSaldos(){
+        const despLuiz=movimentacoes.filter(m=>m.tipo==='despesa'&&m.quem==='Luiz').reduce((a,b)=>a+parseFloat(b.valor),0);
+        const despKety=movimentacoes.filter(m=>m.tipo==='despesa'&&m.quem==='Kety').reduce((a,b)=>a+parseFloat(b.valor),0);
+        const entradas=movimentacoes.filter(m=>m.tipo==='entrada').reduce((a,b)=>a+parseFloat(b.valor),0);
+        const saldo=(salarios.luiz||0)+(salarios.kety||0)+entradas-despLuiz-despKety;
+        saldoDisponivelSpan.textContent=`R$ ${saldo.toFixed(2)}`;
+        despesasLuizSpan.textContent=`R$ ${despLuiz.toFixed(2)}`;
+        despesasKetySpan.textContent=`R$ ${despKety.toFixed(2)}`;
+    }
+
+    async function fetchInvestimentos(){
+        const snapshot=await db.collection('investimentos').get();
+        listaInvestimentosDiv.innerHTML='';
+        if(snapshot.empty){
+            listaInvestimentosDiv.innerHTML='<p class="text-gray-500">Nenhuma meta de investimento.</p>';
+            return;
+        }
+        snapshot.forEach(doc=>{
+            const data=doc.data();
+            const div=document.createElement('div');
+            div.className='bg-gray-100 p-2 rounded animate-fadeIn';
+            const perc=Math.min((data.atual/data.alvo)*100,100);
+            div.innerHTML=`
+                <strong>${data.nome}</strong> - R$ ${data.atual.toFixed(2)}/${data.alvo.toFixed(2)}
+                <div class="w-full bg-gray-300 h-2 rounded mt-1 overflow-hidden">
+                    <div class="bg-green-500 h-2 rounded transition-all duration-700" style="width:0%"></div>
+                </div>`;
+            listaInvestimentosDiv.appendChild(div);
+            setTimeout(()=>div.querySelector('.bg-green-500').style.width=perc+'%',50);
+        });
+    }
+
+    async function fetchCartoes(){
+        const snapshot=await db.collection('cartoes').get();
+        listaCartoesDiv.innerHTML='';
+        if(snapshot.empty){
+            listaCartoesDiv.innerHTML='<p class="text-gray-500">Nenhum cartão adicionado.</p>';
+            return;
+        }
+        snapshot.forEach(doc=>{
+            const data=doc.data();
+            const div=document.createElement('div');
+            div.className='bg-gray-100 p-2 rounded animate-fadeIn';
+            div.innerHTML=`<strong>${data.nome}</strong> - Limite: R$ ${data.limite.toFixed(2)} | Vencimento: dia ${data.vencimento}`;
+            listaCartoesDiv.appendChild(div);
+        });
+    }
+
+    function abrirWhatsApp(num,mensagem){
+        window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensagem)}`,'_blank');
+    }
+
+    // ----- EVENTOS -----
+    formMovimentacao.addEventListener('submit',async e=>{
+        e.preventDefault();
+        const mov={
+            tipo: document.getElementById('tipo').value,
+            descricao: document.getElementById('descricao').value,
+            categoria: document.getElementById('categoria').value,
+            valor: parseFloat(document.getElementById('valor').value),
+            data: document.getElementById('data').value,
+            quem: document.getElementById('quem').value
+        };
+        await db.collection('movimentacoes').add(mov);
+        notificacaoDiv.textContent='Movimentação registrada com sucesso!';
+        notificacaoDiv.style.display='block';
+        setTimeout(()=>notificacaoDiv.style.display='none',3000);
+        formMovimentacao.reset();
+        fetchMovimentacoes();
     });
 
-    form.reset();
-    notificacao.classList.remove("d-none");
-    setTimeout(() => notificacao.classList.add("d-none"), 2000);
+    aplicarFiltrosBtn.addEventListener('click',()=>{
+        const filtros={
+            pessoa:filtroPessoaSelect.value,
+            categoria:filtroCategoriaSelect.value,
+            dataInicio:filtroDataInicioInput.value,
+            dataFim:filtroDataFimInput.value
+        };
+        fetchMovimentacoes(filtros);
+    });
 
-    atualizarFiltro();
+    whatsappBtn.addEventListener('click',()=>{
+        const tipo=document.getElementById('tipo').value;
+        const descricao=document.getElementById('descricao').value;
+        const valor=parseFloat(document.getElementById('valor').value);
+        const data=document.getElementById('data').value;
+        const quem=document.getElementById('quem').value;
+        const categoria=document.getElementById('categoria').value;
+        if(!descricao||!valor||!data){ alert('Preencha todos os campos!'); return; }
+        const tipoTexto=tipo==='despesa'?'Despesa':'Entrada';
+        const msg=`${tipoTexto} registrada por ${quem}:\n- Descrição: ${descricao}\n- Categoria: ${categoria}\n- Valor: R$ ${valor.toFixed(2)}\n- Data: ${data}`;
+        abrirWhatsApp('',msg);
+    });
+
+    extratoWhatsappBtn.addEventListener('click',()=>{
+        if(movimentacoes.length===0){ alert('Nenhuma movimentação para enviar'); return; }
+        let msg='Extrato de Movimentações\n\n';
+        movimentacoes.forEach(m=>{
+            const emoji=m.tipo==='despesa'?'🔴':'🟢';
+            msg+=`${emoji} ${m.descricao}: R$ ${parseFloat(m.valor).toFixed(2)} (${m.data}) por ${m.quem} - ${m.categoria}\n`;
+        });
+        abrirWhatsApp('',msg);
+    });
+
+    mostrarGraficoBtn.addEventListener('click',()=>gerarGrafico());
+
+    formSalarios.addEventListener('submit',async e=>{
+        e.preventDefault();
+        salarios={luiz:parseFloat(salarioLuizInput.value), kety:parseFloat(salarioKetyInput.value)};
+        await db.collection('salarios').doc('fixos').set(salarios);
+        atualizarSaldos();
+        alert('Salários salvos!');
+    });
+
+    formInvestimento.addEventListener('submit',async e=>{
+        e.preventDefault();
+        const meta={
+            nome: document.getElementById('meta-nome').value,
+            atual: parseFloat(document.getElementById('meta-atual').value),
+            alvo: parseFloat(document.getElementById('meta-alvo').value)
+        };
+        await db.collection('investimentos').add(meta);
+        formInvestimento.reset();
+        fetchInvestimentos();
+    });
+
+    formCartao.addEventListener('submit',async e=>{
+        e.preventDefault();
+        const cartao={
+            nome: document.getElementById('cartao-nome').value,
+            limite: parseFloat(document.getElementById('cartao-limite').value),
+            vencimento: parseInt(document.getElementById('cartao-vencimento').value)
+        };
+        await db.collection('cartoes').add(cartao);
+        formCartao.reset();
+        fetchCartoes();
+    });
+
+    // ----- INICIALIZAÇÃO -----
+    fetchMovimentacoes();
+    fetchSalarios();
+    fetchInvestimentos();
+    fetchCartoes();
 });
-
-// botões
-salvarSalariosBtn.addEventListener("click", salvarSalarios);
-if (extratoWhatsappBtn) {
-    extratoWhatsappBtn.addEventListener("click", async () => {
-        const filtroPessoa = filtro.value;
-        let query = db.collection("movimentacoes").orderBy("data", "desc");
-
-        if (filtroPessoa !== "todos") {
-            query = db.collection("movimentacoes")
-                .where("quem", "==", filtroPessoa)
-                .orderBy("data", "desc");
-        }
-
-        const snapshot = await query.get();
-        const movimentacoes = snapshot.docs.map(doc => doc.data());
-
-        const mensagem = montarMensagemExtrato(movimentacoes, filtroPessoa);
-        abrirWhatsApp("", mensagem);
-    });
-}
-
-// inicialização
-carregarMovimentacoes("todos");
-atualizarFiltro();
-fetchSalarios();
-filtro.addEventListener("change", () => carregarMovimentacoes(filtro.value));

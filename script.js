@@ -38,8 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let query = db.collection('movimentacoes').orderBy('data','desc');
             if(filtros.pessoa && filtros.pessoa!=='todos') query=query.where('quem','==',filtros.pessoa);
             if(filtros.categoria && filtros.categoria!=='todos') query=query.where('categoria','==',filtros.categoria);
-            if(filtros.dataInicio) query=query.where('data','>=',filtros.dataInicio);
-            if(filtros.dataFim) query=query.where('data','<=',filtros.dataFim);
+            if(filtros.data) query=query.where('data','>=',filtros.data);
 
             const snapshot = await query.get();
             movimentacoes = snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));

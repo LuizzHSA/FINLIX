@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const extratoWhatsappBtn = document.getElementById('extrato-whatsapp-btn');
     const extratoDiv = document.getElementById('extrato');
     const mostrarGraficoBtn = document.getElementById('mostrar-grafico-btn');
+    const excluirGastosMesBtn = document.getElementById('excluir-gastos-mes-btn');
     const graficoSecao = document.getElementById('grafico-secao');
     const graficoCanvas = document.getElementById('graficoDespesas');
 
@@ -161,6 +162,70 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensagem)}`,'_blank');
     }
 
+    async function excluirGastosMensais() {
+        // 1. Pergunta qual mês limpar
+        const target = prompt("Qual mês deseja limpar? Digite 'atual' ou 'anterior'.");
+        if (!target) return;
+
+        let targetDate = new Date();
+
+        // Se for o mês anterior, ajusta a data
+        if (target.toLowerCase() === 'anterior') {
+            targetDate.setMonth(targetDate.getMonth() - 1);
+        } else if (target.toLowerCase() !== 'atual') {
+            alert("Opção inválida. Digite 'atual' ou 'anterior'.");
+            return;
+        }
+
+        const year = targetDate.getFullYear();
+        const month = targetDate.getMonth() + 1; // getMonth() é 0-based
+
+        // Calcula o intervalo de datas no formato YYYY-MM-DD
+        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+
+        // Calcula o início do próximo mês
+        let nextDate = new Date(year, month, 1);
+        const nextMonthStartDate = `${nextDate.getFullYear()}-${(nextDate.getMonth() + 1).toString().padStart(2, '0')}-01`;
+
+        const confirmMsg = `Tem certeza que deseja DELETAR TODAS as despesas (${month}/${year})? ESTA AÇÃO NÃO PODE SER DESFEITA.`;
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        try {
+            // 2. Cria a Query: tipo='despesa' E data >= startDate E data < nextMonthStartDate
+            let query = db.collection('movimentacoes')
+                .where('tipo', '==', 'despesa')
+                .where('data', '>=', startDate)
+                .where('data', '<', nextMonthStartDate);
+
+            const snapshot = await query.get();
+            const batch = db.batch();
+
+            if (snapshot.empty) {
+                alert(`Nenhuma despesa encontrada para ${month}/${year}.`);
+                return;
+            }
+
+            let count = 0;
+            snapshot.forEach(doc => {
+                batch.delete(doc.ref);
+                count++;
+            });
+
+            await batch.commit();
+
+            alert(`SUCESSO: ${count} despesas de ${month}/${year} foram DELETADAS.`);
+
+            // 3. Atualiza a tela após a exclusão
+            fetchMovimentacoes();
+
+        } catch (error) {
+            console.error("Erro ao deletar gastos mensais:", error);
+            alert("Erro ao tentar deletar as despesas. Verifique o console.");
+        }
+    }
+
     // ----- EVENTOS -----
     formMovimentacao.addEventListener('submit',async e=>{
         e.preventDefault();
@@ -247,6 +312,9 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchCartoes();
     });
 
+    excluirGastosMesBtn.addEventListener('click', () => {
+        excluirGastosMensais();
+    });
     // ----- INICIALIZAÇÃO -----
     fetchMovimentacoes();
     fetchSalarios();
